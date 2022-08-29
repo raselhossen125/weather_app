@@ -11,7 +11,7 @@ import 'provider/weather_provider.dart';
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
-      statusBarColor: Color(0xffE5F9F8),
+      statusBarColor: Color(0xffECFCFB),
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.dark,
     ),
