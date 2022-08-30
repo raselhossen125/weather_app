@@ -1,13 +1,15 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, unused_local_variable, unused_element, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, avoid_unnecessary_containers
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, unused_local_variable, unused_element, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, avoid_unnecessary_containers, use_build_context_synchronously, avoid_print
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import 'package:weather_app/pages/settings_page.dart';
 import 'package:weather_app/untils/constants.dart';
 import 'package:weather_app/untils/location_service.dart';
 import 'package:weather_app/untils/text_styles.dart';
 import '../provider/weather_provider.dart';
-import '../untils/color.dart';
 import '../untils/helper_function.dart';
 
 class WeatherPage extends StatefulWidget {
@@ -21,6 +23,7 @@ class _WeatherPageState extends State<WeatherPage> {
   late Size mediaQueary;
   late WeatherProvider provider;
   bool inInit = true;
+  Timer? timer;
 
   @override
   void didChangeDependencies() {
@@ -33,11 +36,40 @@ class _WeatherPageState extends State<WeatherPage> {
     super.didChangeDependencies();
   }
 
-  _getData() {
-    determinePosition().then((position) {
+  _startTimer() {
+
+  }
+
+  _getData() async {
+    final isLocationEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isLocationEnabled) {
+      showMsgWithAction(
+        context: context,
+        msg: 'Please turn on location',
+        callback: () async{
+          final status = await Geolocator.openLocationSettings();
+
+            final enable=await Geolocator.isLocationServiceEnabled();
+            print(enable);
+            if(enable==true){
+              _getData();
+            }
+            else{
+              showMsg(context, "PLease Enable Location");
+            }
+        },
+      );
+      return;
+    }
+    try {
+      final position = await determinePosition();
       provider.setNewLocation(position.latitude, position.longitude);
+      provider.setTempUnit(await provider.getPreferanceTempUnitValue());
       provider.getWeatherData();
-    });
+    } catch (error) {
+      rethrow;
+    }
+    determinePosition();
   }
 
   @override
@@ -76,17 +108,35 @@ class _WeatherPageState extends State<WeatherPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
-                onPressed: () {},
+                onPressed: () async {
+                  final result = await showSearch(
+                    context: context,
+                    delegate: _citySearchDeligate(),
+                  );
+                  if (result != null && result.isNotEmpty) {
+                    provider.convertAddressToLatLong(result);
+                  }
+                },
                 icon: Icon(
-                  Icons.add,
+                  Icons.search,
                   color: Colors.black,
                 )),
             Text(
-              '${response!.name} ${response.sys!.country!}',
+              '${response!.name}, ${response.sys!.country!}',
               style: txtAddress20,
             ),
             IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  _getData();
+                },
+                icon: Icon(
+                  Icons.my_location,
+                  color: Colors.black,
+                )),
+            IconButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed(SettingsPage.routeName);
+                },
                 icon: Icon(
                   Icons.settings,
                   color: Colors.black,
@@ -99,18 +149,18 @@ class _WeatherPageState extends State<WeatherPage> {
         ),
         SizedBox(height: 40),
         Text(
-          '${response.main!.temp!.round()} $degree$celsius',
+          '${response.main!.temp!.round()} $degree${provider.unitSymbool}',
           style: txtTempBig60,
         ),
         Container(
           margin: EdgeInsets.only(top: 50),
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 15),
           width: mediaQueary.width,
           child: Card(
             // elevation: 5,
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-            color: cardColor.withOpacity(0.4),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            color: Colors.white.withOpacity(0.1),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
               child: Column(
@@ -184,5 +234,59 @@ class _WeatherPageState extends State<WeatherPage> {
 
   Widget _forecastWeatherSection() {
     return Container();
+  }
+}
+
+class _citySearchDeligate extends SearchDelegate<String> {
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () {
+          query = '';
+        },
+        icon: Icon(Icons.clear),
+      )
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    IconButton(
+      onPressed: () {
+        close(context, '');
+      },
+      icon: Icon(Icons.arrow_back),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return ListTile(
+      title: Text(query),
+      leading: Icon(Icons.search),
+      onTap: () {
+        close(context, query);
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final filterList = query.isEmpty
+        ? cities
+        : cities
+            .where((city) => city.toLowerCase().startsWith(query.toLowerCase()))
+            .toList();
+    return ListView.builder(
+      itemCount: filterList.length,
+      itemBuilder: (context, index) => ListTile(
+        title: Text(filterList[index]),
+        onTap: () {
+          query = filterList[index];
+          close(context, query);
+        },
+      ),
+    );
   }
 }
