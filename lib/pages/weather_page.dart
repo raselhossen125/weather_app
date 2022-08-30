@@ -1,8 +1,9 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, unused_local_variable, unused_element, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, avoid_unnecessary_containers, use_build_context_synchronously, avoid_print
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, unused_local_variable, unused_element, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, avoid_unnecessary_containers, use_build_context_synchronously, avoid_print, camel_case_types, body_might_complete_normally_nullable
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/pages/settings_page.dart';
@@ -23,7 +24,6 @@ class _WeatherPageState extends State<WeatherPage> {
   late Size mediaQueary;
   late WeatherProvider provider;
   bool inInit = true;
-  Timer? timer;
 
   @override
   void didChangeDependencies() {
@@ -36,40 +36,21 @@ class _WeatherPageState extends State<WeatherPage> {
     super.didChangeDependencies();
   }
 
-  _startTimer() {
-
-  }
-
   _getData() async {
-    final isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!isLocationEnabled) {
-      showMsgWithAction(
-        context: context,
-        msg: 'Please turn on location',
-        callback: () async{
-          final status = await Geolocator.openLocationSettings();
-
-            final enable=await Geolocator.isLocationServiceEnabled();
-            print(enable);
-            if(enable==true){
-              _getData();
-            }
-            else{
-              showMsg(context, "PLease Enable Location");
-            }
-        },
-      );
-      return;
+    final locationEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!locationEnabled) {
+      EasyLoading.showToast('Location is disabled');
+      await Geolocator.getCurrentPosition();
+      _getData();
     }
     try {
       final position = await determinePosition();
       provider.setNewLocation(position.latitude, position.longitude);
       provider.setTempUnit(await provider.getPreferanceTempUnitValue());
       provider.getWeatherData();
-    } catch (error) {
+    } catch (e) {
       rethrow;
     }
-    determinePosition();
   }
 
   @override
@@ -105,7 +86,7 @@ class _WeatherPageState extends State<WeatherPage> {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
                 onPressed: () async {
@@ -125,32 +106,56 @@ class _WeatherPageState extends State<WeatherPage> {
               '${response!.name}, ${response.sys!.country!}',
               style: txtAddress20,
             ),
-            IconButton(
-                onPressed: () {
-                  _getData();
-                },
-                icon: Icon(
-                  Icons.my_location,
-                  color: Colors.black,
-                )),
-            IconButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(SettingsPage.routeName);
-                },
-                icon: Icon(
-                  Icons.settings,
-                  color: Colors.black,
-                )),
+            Row(
+              children: [
+                InkWell(
+                  onTap: () {
+                    _getData();
+                  },
+                  child: Icon(
+                    Icons.my_location,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(width: 10),
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).pushNamed(SettingsPage.routeName);
+                  },
+                  child: Icon(
+                    Icons.settings,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(width: 10),
+              ],
+            )
           ],
         ),
-        Text(
-          getFormattedDateTime(response.dt!, 'MMM dd yyyy'),
-          style: txtDateHeader16,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              getFormattedDateTime(response.dt!, 'MMM dd yyyy'),
+              style: txtDateHeader16,
+            ),
+            SizedBox(width: 20,)
+          ],
         ),
         SizedBox(height: 40),
-        Text(
-          '${response.main!.temp!.round()} $degree${provider.unitSymbool}',
-          style: txtTempBig60,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.network(
+              '$iconPrefix${response.weather![0].icon}$iconSuffix',
+              fit: BoxFit.cover,
+            ),
+            Text(
+              '${response.main!.temp!.round()} $degree${provider.unitSymbool}',
+              style: txtTempBig60,
+            ),
+            SizedBox(width: 30,)
+          ],
         ),
         Container(
           margin: EdgeInsets.only(top: 50),
@@ -172,7 +177,7 @@ class _WeatherPageState extends State<WeatherPage> {
                       Expanded(
                           child: Container(
                               child: Text(
-                        'feels like ${response.main!.feelsLike!.round()}$degree$celsius',
+                        'feels like ${response.main!.feelsLike!.round()}$degree${provider.unitSymbool}',
                         style: txtNormal16,
                       ))),
                       Expanded(

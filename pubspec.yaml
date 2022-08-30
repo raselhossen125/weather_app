@@ -41,6 +41,7 @@ dependencies:
   geocoding:
   http:
   google_fonts: ^3.0.1
+  flutter_easyloading: 
 
 dev_dependencies:
   flutter_test:

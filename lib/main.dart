@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 
 import 'pages/settings_page.dart';
@@ -41,13 +42,19 @@ class MyApp extends StatelessWidget {
       800: Color.fromARGB(255, 255, 88, 88),
       900: Color.fromARGB(255, 252, 70, 70),
     };
-    MaterialColor pokeballRed = MaterialColor(0xff647B88, pokeballRedSwatch);
+    MaterialColor pokeballRed = MaterialColor(0xffECFCFB, pokeballRedSwatch);
+
+    EasyLoading.instance
+      ..indicatorType = EasyLoadingIndicatorType.wave
+      ..toastPosition = EasyLoadingToastPosition.bottom;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: pokeballRed,
       ),
+      builder: EasyLoading.init(),
       initialRoute: WeatherPage.routeName,
       routes: {
         WeatherPage.routeName: (context) => WeatherPage(),
