@@ -42,6 +42,7 @@ dependencies:
   http:
   google_fonts: ^3.0.1
   flutter_easyloading: 
+  flutter_speed_dial: ^6.0.0
 
 dev_dependencies:
   flutter_test:

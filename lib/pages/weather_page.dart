@@ -1,9 +1,8 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, unused_local_variable, unused_element, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, avoid_unnecessary_containers, use_build_context_synchronously, avoid_print, camel_case_types, body_might_complete_normally_nullable
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/pages/settings_page.dart';
@@ -11,6 +10,7 @@ import 'package:weather_app/untils/constants.dart';
 import 'package:weather_app/untils/location_service.dart';
 import 'package:weather_app/untils/text_styles.dart';
 import '../provider/weather_provider.dart';
+import '../untils/color.dart';
 import '../untils/helper_function.dart';
 
 class WeatherPage extends StatefulWidget {
@@ -55,20 +55,22 @@ class _WeatherPageState extends State<WeatherPage> {
 
   @override
   Widget build(BuildContext context) {
+    final response = provider.currentResponseModel;
     return Scaffold(
       body: Stack(
         children: [
           Image.asset(
-            'images/bg1.jpg',
+            'images/bg2.jpg',
             height: mediaQueary.height,
             width: mediaQueary.width,
             fit: BoxFit.cover,
           ),
           provider.hasDataLoaded
-              ? ListView(
+              ? Column(
                   children: [
                     _currentWeatherSection(),
                     _forecastWeatherSection(),
+                    // _sunRiseSunSetSection(),
                   ],
                 )
               : Center(
@@ -78,6 +80,64 @@ class _WeatherPageState extends State<WeatherPage> {
                 )),
         ],
       ),
+      floatingActionButton: SpeedDial(
+        icon: Icons.add,
+        foregroundColor: iconColor,
+        animatedIcon: AnimatedIcons.menu_close,
+        backgroundColor: btnColor,
+        overlayColor: Colors.black,
+        overlayOpacity: 0.2,
+        animationDuration: Duration(milliseconds: 250),
+        spacing: 10,
+        curve: Curves.bounceIn,
+        children: [
+          SpeedDialChild(
+            onTap: () {
+              _getData();
+            },
+            backgroundColor: cardColor,
+            labelBackgroundColor: cardColor,
+            child: Icon(
+              Icons.my_location,
+              color: iconColor,
+            ),
+            label: 'My Location',
+            labelStyle: TextStyle(color: txtColor),
+          ),
+          SpeedDialChild(
+            onTap: () async {
+              final result = await showSearch(
+                context: context,
+                delegate: _citySearchDeligate(),
+              );
+              if (result != null && result.isNotEmpty) {
+                provider.convertAddressToLatLong(result);
+              }
+            },
+            backgroundColor: cardColor,
+            labelBackgroundColor: cardColor,
+            child: Icon(
+              Icons.search,
+              color: iconColor,
+            ),
+            label: 'Search',
+            labelStyle: TextStyle(color: txtColor),
+          ),
+          SpeedDialChild(
+            onTap: () {
+              Navigator.of(context).pushNamed(SettingsPage.routeName);
+            },
+            backgroundColor: cardColor,
+            labelBackgroundColor: cardColor,
+            child: Icon(
+              Icons.settings,
+              color: iconColor,
+            ),
+            label: 'Settings',
+            labelStyle: TextStyle(color: txtColor),
+          ),
+        ],
+      ),
     );
   }
 
@@ -85,84 +145,11 @@ class _WeatherPageState extends State<WeatherPage> {
     final response = provider.currentResponseModel;
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-                onPressed: () async {
-                  final result = await showSearch(
-                    context: context,
-                    delegate: _citySearchDeligate(),
-                  );
-                  if (result != null && result.isNotEmpty) {
-                    provider.convertAddressToLatLong(result);
-                  }
-                },
-                icon: Icon(
-                  Icons.search,
-                  color: Colors.black,
-                )),
-            Text(
-              '${response!.name}, ${response.sys!.country!}',
-              style: txtAddress20,
-            ),
-            Row(
-              children: [
-                InkWell(
-                  onTap: () {
-                    _getData();
-                  },
-                  child: Icon(
-                    Icons.my_location,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(width: 10),
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).pushNamed(SettingsPage.routeName);
-                  },
-                  child: Icon(
-                    Icons.settings,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(width: 10),
-              ],
-            )
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              getFormattedDateTime(response.dt!, 'MMM dd yyyy'),
-              style: txtDateHeader16,
-            ),
-            SizedBox(width: 20,)
-          ],
-        ),
-        SizedBox(height: 40),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.network(
-              '$iconPrefix${response.weather![0].icon}$iconSuffix',
-              fit: BoxFit.cover,
-            ),
-            Text(
-              '${response.main!.temp!.round()} $degree${provider.unitSymbool}',
-              style: txtTempBig60,
-            ),
-            SizedBox(width: 30,)
-          ],
-        ),
         Container(
-          margin: EdgeInsets.only(top: 50),
+          margin: EdgeInsets.only(top: 55),
           padding: EdgeInsets.symmetric(horizontal: 15),
           width: mediaQueary.width,
           child: Card(
-            // elevation: 5,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             color: Colors.white.withOpacity(0.1),
@@ -172,6 +159,38 @@ class _WeatherPageState extends State<WeatherPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${response!.name}, ${response.sys!.country!}',
+                        style: txtAddress20,
+                      ),
+                      Text(
+                        getFormattedDateTime(response.dt!, 'MMM dd yyyy'),
+                        style: txtDateHeader16,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.network(
+                        '$iconPrefix${response.weather![0].icon}$iconSuffix',
+                        fit: BoxFit.cover,
+                        color: Colors.white,
+                      ),
+                      Text(
+                        '${response.main!.temp!.round()} $degree${provider.unitSymbool}',
+                        style: txtTempBig60,
+                      ),
+                      SizedBox(
+                        width: 30,
+                      )
+                    ],
+                  ),
+                  SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
@@ -238,6 +257,68 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   Widget _forecastWeatherSection() {
+    return Container(
+      margin: EdgeInsets.only(top: 20),
+      height: 160,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: provider.forecastResponseModel!.list!.length,
+        itemBuilder: (context, index) {
+          final forecastM = provider.forecastResponseModel!.list![index];
+          return Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Container(
+              height: 160,
+              width: 160,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.13),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 8,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      getFormattedDateTime(forecastM.dt!, 'MMM dd yyyy'),
+                      style: txtNormal14,
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      getFormattedDateTime(forecastM.dt!, 'hh mm a'),
+                      style: txtNormal14,
+                    ),
+                    Image.network(
+                      '$iconPrefix${forecastM.weather![0].icon}$iconSuffix',
+                      fit: BoxFit.cover,
+                      height: 50,
+                      width: 50,
+                      color: Colors.white,
+                    ),
+                    Text(
+                      '${forecastM.main!.temp!.round()} $degree${provider.unitSymbool}',
+                      style: txtNormal16,
+                    ),
+                    Chip(
+                      backgroundColor: cardColor,
+                      label: Text(
+                        forecastM.weather![0].description!,
+                        style: txtNormal14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _sunRiseSunSetSection() {
     return Container();
   }
 }

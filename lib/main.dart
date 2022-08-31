@@ -12,7 +12,7 @@ import 'provider/weather_provider.dart';
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
-      statusBarColor: Color(0xffECFCFB),
+      statusBarColor: Color(0xff08677D),
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.dark,
     ),
@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
       800: Color.fromARGB(255, 255, 88, 88),
       900: Color.fromARGB(255, 252, 70, 70),
     };
-    MaterialColor pokeballRed = MaterialColor(0xffECFCFB, pokeballRedSwatch);
+    MaterialColor pokeballRed = MaterialColor(0xff08677D, pokeballRedSwatch);
 
     EasyLoading.instance
       ..indicatorType = EasyLoadingIndicatorType.wave
