@@ -55,7 +55,6 @@ class _WeatherPageState extends State<WeatherPage> {
 
   @override
   Widget build(BuildContext context) {
-    final response = provider.currentResponseModel;
     return Scaffold(
       body: Stack(
         children: [
@@ -66,21 +65,23 @@ class _WeatherPageState extends State<WeatherPage> {
             fit: BoxFit.cover,
           ),
           provider.hasDataLoaded
-              ? Column(
-                  children: [
-                    _currentWeatherSection(),
-                    _forecastWeatherSection(),
-                    // _sunRiseSunSetSection(),
-                  ],
-                )
+              ? SingleChildScrollView(
+                child: Column(
+                    children: [
+                      _currentWeatherSection(),
+                      _forecastWeatherSection(),
+                      _sunRiseSunSetSection(),
+                    ],
+                  ),
+              )
               : Center(
                   child: Text(
                   'Please Wait',
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: Colors.white),
                 )),
         ],
       ),
-      floatingActionButton: SpeedDial(
+      floatingActionButton: provider.currentResponseModel == null ? null : SpeedDial(
         icon: Icons.add,
         foregroundColor: iconColor,
         animatedIcon: AnimatedIcons.menu_close,
@@ -154,17 +155,19 @@ class _WeatherPageState extends State<WeatherPage> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             color: Colors.white.withOpacity(0.1),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 10),
+                  SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${response!.name}, ${response.sys!.country!}',
-                        style: txtAddress20,
+                      FittedBox(
+                        child: Text(
+                          '${response!.name}, ${response.sys!.country!}',
+                          style: txtAddress20,
+                        ),
                       ),
                       Text(
                         getFormattedDateTime(response.dt!, 'MMM dd yyyy'),
@@ -172,7 +175,7 @@ class _WeatherPageState extends State<WeatherPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -189,6 +192,19 @@ class _WeatherPageState extends State<WeatherPage> {
                         width: 30,
                       )
                     ],
+                  ),
+                  SizedBox(height: 15),
+                  Center(
+                    child: Chip(
+                        backgroundColor: cardColor.withOpacity(0.9),
+                        label: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            response.weather![0].description!,
+                            style: txtNormal14B,
+                          ),
+                        ),
+                      ),
                   ),
                   SizedBox(height: 20),
                   Row(
@@ -246,7 +262,7 @@ class _WeatherPageState extends State<WeatherPage> {
                     'Degree ${response.wind!.deg}$degree',
                     style: txtNormal16,
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 15),
                 ],
               ),
             ),
@@ -299,13 +315,13 @@ class _WeatherPageState extends State<WeatherPage> {
                     ),
                     Text(
                       '${forecastM.main!.temp!.round()} $degree${provider.unitSymbool}',
-                      style: txtNormal16,
+                      style: txtNormal16W,
                     ),
                     Chip(
                       backgroundColor: cardColor,
                       label: Text(
                         forecastM.weather![0].description!,
-                        style: txtNormal14,
+                        style: txtNormal14B,
                       ),
                     ),
                   ],
@@ -319,7 +335,56 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   Widget _sunRiseSunSetSection() {
-    return Container();
+    final response = provider.currentResponseModel;
+    return Padding(
+      padding: const EdgeInsets.only(top: 25, left: 15, right: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            child: Container(
+              height: 60,
+              width: 150,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Colors.white.withOpacity(0.13)
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Sun Rise  :  ', style: txtNormal15,),
+                    Text(getFormattedDateTime(response!.sys!.sunrise!, 'hh mm a'), style: txtNormal15,),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 15),
+          Expanded(
+            child: Container(
+              height: 60,
+              width: 150,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Colors.white.withOpacity(0.13)
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Sun Set  :  ', style: txtNormal15),
+                    Text(getFormattedDateTime(response.sys!.sunset!, 'hh mm a'), style: txtNormal15,),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

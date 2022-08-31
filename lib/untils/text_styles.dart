@@ -13,11 +13,17 @@ const txtAddress20 = TextStyle(
 
 const txtDateHeader16 = TextStyle(
     fontSize: 16,
-    color: Colors.white
+    color: Colors.white,
+    fontWeight: FontWeight.bold
 );
 
 const txtNormal16 = TextStyle(
     fontSize: 16,
+    color: Colors.white
+);
+
+const txtNormal16W = TextStyle(
+    fontSize: 18,
     color: Colors.white
 );
 
@@ -28,7 +34,14 @@ const txtNormal14 = TextStyle(
 
 const txtNormal14B = TextStyle(
     fontSize: 14,
-    color: Colors.black
+    color: Colors.white,
+    fontWeight: FontWeight.bold
+);
+
+const txtNormal15 = TextStyle(
+    fontSize: 15,
+    color: Colors.white,
+    fontWeight: FontWeight.bold
 );
 
 
